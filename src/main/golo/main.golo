@@ -59,6 +59,7 @@ local function getOrElseFalse = |params, key| {
 }
 
 local function javaToByteCode = |context| {
+  println("bytecode")
   let code = context: getBodyAsString()
   let params = context: request(): params()
   let verbose = getOrElseFalse(params, "verbose")
@@ -85,10 +86,12 @@ local function javaToByteCode = |context| {
     context: response(): setStatusCode(200): end(disassembled)
   } catch (e) {
     context: response(): setStatusCode(500): end(e: getMessage())
+    e: printStackTrace()
   }
 }
 
 local function javaToAsm = |context| {
+  println("asm")
   let code = context: getBodyAsString()
   let className = getFullQualifiedClassName(code)
   let tmp = Files.createTempDirectory(UUID.randomUUID(): toString()): toFile()
