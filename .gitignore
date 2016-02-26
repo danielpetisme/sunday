@@ -3,3 +3,4 @@
 .vertx/
 target/
 file-uploads/
+.DS_Store

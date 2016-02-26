@@ -1,0 +1,396 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sunday | Welcome</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.1.2/foundation-flex.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
+  <style type="text/css" media="screen">
+
+    body {
+      height: auto !important;
+      display: flex;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    .content {
+      flex: 1 0;
+    }
+
+    footer {
+      height: 100px;
+    }
+
+    .ace_editor {
+      height: 200px;
+      border: 1px solid black;
+    }
+
+    .bigger_editor > .ace_editor {
+      height: 600px;
+    }
+
+    #actions {
+      height: 80px;
+    }
+
+    .fix .fa-spin {
+      -webkit-transform-origin: 50% calc(50% - .5px);
+      transform-origin: 50% calc(50% - .5px);
+    }
+
+    .sun {
+      color: #f1c40f;
+    }
+
+    .title {
+      margin-bottom: 0px;
+    }
+
+    .subheader {
+      margin-top: 0px;
+    }
+
+    code.block {
+      display: block;
+      white-space: pre-wrap;
+    }
+
+  </style>
+</head>
+<body ng-app="sunday">
+<div class='content' ng-controller="SundayController">
+  <div class="row align-middle align-justify">
+    <div class="column medium-4">
+      <h1 class="title">
+    <span class="fix">
+      <fa name="sun-o"
+          spin="{{running}}"
+          class="sun"></fa>
+    </span>
+        Sunday
+      </h1>
+    </div>
+    <div class="column medium-4 align-right">
+      <ul class="menu simple text-right">
+        <li>
+          <button class="button hollow" data-open="cli">
+            <fa name="terminal"></fa>
+            &nbsp;CLI
+          </button>
+        </li>
+        <li>
+          <button class="button hollow" data-open="about">
+            <fa name="info-circle"></fa>
+            &nbsp;About
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="row">
+    <h6 class="subheader"><i>The Java disassembler and ASMifier as a Service.</i></h6>
+  </div>
+  <div class="row">
+    <div class="column medium-12 medium-centered">
+      <section>
+        <div id="java" ui-ace="{useWrapMode : true, showGutter: true, mode: 'java', onLoad: javaEditorLoaded}">
+        </div>
+      </section>
+    </div>
+  </div>
+  <div id="actions" class="row align-middle">
+    <div class="medium-3 column">
+      <button type="button" class="button" ng-click="run()">
+        <fa name="play" size="1"></fa>
+        <strong>Do some black magic</strong>
+      </button>
+    </div>
+    <div class="medium-9 column">
+      <fieldset>
+        <legend><i>Options for disassembling</i></legend>
+        <input id="verbose" ng-model="verbose" type="checkbox"><label for="verbose">Verbose</label>
+        <input id="lineNumbers" ng-model="lineNumbers" type="checkbox"><label for="lineNumbers">Line numbers</label>
+        <input id="private" ng-model="private" type="checkbox"><label for="private">Private</label>
+        <input id="signatures" ng-model="signatures" type="checkbox"><label for="signatures">Signatures</label>
+        <input id="sysinfo" ng-model="sysinfo" type="checkbox"><label for="sysinfo">Sysinfo</label>
+        <input id="constants" ng-model="constants" type="checkbox"><label for="constants">Constants</label>
+      </fieldset>
+    </div>
+  </div>
+  <div id="result" class="row" ng-show="finished">
+    <div class="column medium-6">
+      <div class="row align-right align-bottom">
+        <div class="column medium-4">
+          <h1 class="text-center">Bytecode</h1>
+        </div>
+        <div class="column medium-4 text-right">
+          <button id="bytecodeCopyButton" class="button" ng-class="{success: bytecodeCopied == true}" ngclipboard
+                  data-clipboard-text="{{bytecode}}"
+                  ngclipboard-success="onSuccess(e)">{{bytecodeCopyButtonMessage}}
+          </button>
+        </div>
+      </div>
+      <section class="bigger_editor">
+        <div id="bytecode" ui-ace="{useWrapMode : true, showGutter: true, mode: 'java', onLoad: bytecodeEditorLoaded}"
+             readonly>
+          Bytecode
+        </div>
+      </section>
+    </div>
+    <div class="column medium-6">
+      <div class="row align-right align-bottom">
+        <div class="column medium-4">
+          <h1 class="text-center">ASM</h1>
+        </div>
+        <div class="column medium-4 text-right">
+          <button id="asmCopyButton" class="button" ng-class="{success: asmCopied == true}" ngclipboard
+                  data-clipboard-text="{{asm}}"
+                  ngclipboard-success="onSuccess(e)">{{asmCopyButtonMessage}}
+          </button>
+        </div>
+      </div>
+      <section class="bigger_editor">
+        <div id="asm" ui-ace="{useWrapMode : true, showGutter: true, mode: 'java', onLoad: asmEditorLoaded}" readonly>
+          ASM
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+<footer>
+  <div class="row">
+    <div class="column medium-12 medium-centered">
+      <hr/>
+    </div>
+  </div>
+  <div class="row">
+    <div class="column medium-6">
+      <i>Copyrith &copy; 2016 <a href="https://twitter.com/danielpetisme">Daniel Petisme</a></i>
+    </div>
+    <div class="column medium-6 text-right">
+      <a href="https://github.com/danielpetisme/sunday">
+        <fa name="github" size="2"></fa>
+      </a>
+    </div>
+  </div>
+  </div>
+</footer>
+<script id="hello" type="text/java">//Some Java code
+package io.sunday;
+
+public class Hello {
+  public static void main(String... args) {
+    System.out.println("Hello");
+  }
+}</script>
+<div class="reveal large" id="about" data-reveal>
+  <h1>What is this?</h1>
+
+  <p>
+    <a href="http://sunday.cleverapps.io">Sunday, the Java disassembler and ASMifier as Service</a> is a tool which
+    permits to... disassemble and ASMify a snippet of Java code.<br/>
+    In a nutshell <a href="https://en.wikipedia.org/wiki/Disassembler">disassembling</a> consists in transforming
+    machine code (binary) into assembly code (ie. bytecode in Java), it's basically what does the <a
+      href="https://docs.oracle.com/javase/8/docs/technotes/tools/windows/javap.html"><code>javap</code></a> command.
+    <a href="http://asm.ow2.org/">ASM</a> provides a <a href="http://asm.ow2.org/doc/faq.html#Q10">ASMifier</a> command
+    line tools which taske a Java class file (bytecode) and produce the Java source code
+    which permits to write the according bytecode.
+  </p>
+
+  <h1>Why this weird name, &quot;Sunday&quot;?</h1>
+
+  <p>
+    Simply because the project started on a Sunday.
+    Naming is hard...
+  </p>
+
+  <h1>Why?</h1>
+
+  <p>
+    Top and selfish reason: Because I need it!
+    During the few contributions to the <a href="http://golo-lang.org/">Golo Progamming Language</a>, I used to do such
+    process (disassemble and ASMifiy).
+    I often dreamt of tool presenting the Java source, the bytecode and the AMSified version in a single panel... voilà.
+  </p>
+
+  <h1>How does it work?</h1>
+
+  <p>
+    First of all, it relies on <i>Giants shoulders</i>:
+  <ul>
+    <li><a href="http://golo-lang.org/">Golo Programming Language</a></li>
+    <li><a href="http://vertx.io/">Vert.x</a> for the <a href="http://vertx.io/docs/vertx-web/java/">web</a> part</li>
+    <li><a href="https://www.docker.com/">Docker</a> for the packaging</li>
+    <li><a href="https://www.clever-cloud.com">Clever-cloud</a> for the hosting</li>
+  </ul>
+  For each disassembling or ASMification request, the app creates the Java source file into a temp directory and then
+  compiles it.
+  Once the <code>class</code> file created, the app invoke the <code>javap</code> or <code>ASMifier</code> tool and
+  redirects
+  <code>stout</code> and <code>stderr</code> in files.
+  If the <code>stderr</code> file is empty then, the app respond withe the <code>stdout</code> file content.
+  </p>
+  <h1>Which version/distribution of Java are you using?</h1>
+
+  <p>
+    The app is package into a <a href="https://www.docker.com/">Docker</a> image based on <code>maven:3-jdk-8</code>
+    (present on <a href="https://hub.docker.com/_/maven/">Docker Hub</a>).<br/>
+    This is the result of the <code>java -version</code> command:
+    <code class="block">openjdk version "1.8.0_66-internal"
+      OpenJDK Runtime Environment (build 1.8.0_66-internal-b17)
+      OpenJDK 64-Bit Server VM (build 25.66-b17, mixed mode)</code>
+    and <code>mvn -v</code>:
+    <code class="block">Apache Maven 3.3.9 (bb52d8502b132ec0a5a3f4c09453c07478323dc5; 2015-11-10T16:41:47+00:00)
+      Maven home: /usr/share/maven
+      Java version: 1.8.0_66-internal, vendor: Oracle Corporation
+      Java home: /usr/lib/jvm/java-8-openjdk-amd64/jre
+      Default locale: en, platform encoding: UTF-8
+      OS name: "linux", version: "4.0.9-boot2docker", arch: "amd64", family: "unix"</code>
+  </p>
+
+  <h1>I have a killer idea this app</h1>
+
+  <p>
+    Be my guest, the sources are public and available on <a href="https://github.com/danielpetisme/sunday">Github</a>.
+  </p>
+  <button class="close-button" data-close aria-label="Close modal" type="button">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<div class="reveal large" id="cli" data-reveal>
+  Sunday exposes 2 endpoints
+
+  <h1>Disassembling</h1>
+  Endpoint: <code>/bytecode</code>
+
+  <p>
+    This endpoint respond to
+    <code>POST</code> request and try to compile and disassemble the code present in the request's body.
+
+    You can configure the disassembling by providing parameters in the query string.
+  <ul>
+    <li><code>verbose</code> Print additional information</li>
+    <li><code>lineNumbers</code> Print line number and local variable tables</li>
+    <li><code>private</code> Show all classes and members</li>
+    <li><code>signatures</code> Print internal type signatures</li>
+    <li><code>sysinfo</code> Show system info (path, size, date, MD5 hash)of class being processed</li>
+    <li><code>constants</code> Show final constants</li>
+  </ul>
+  If one of the parameter is absent, the app set the parameter to <code>false</code>.
+  <code class="block">curl -X POST http://sunday.cleverapps.io/bytecode -d &quot;
+    package io.sunday;
+    public class Hello {
+    public static void main(String... args) {
+    System.out.println("Hello");
+    }
+    }&quot;</code>
+  or assuming you have a <code>Hello.java</code> source file in the current directory.<br/>
+  <code>curl -X POST http://sunday.cleverapps.io/bytecode?verbose=true&private=false -d @Hello.java</code>
+  </p>
+
+  <h1>ASMify</h1>
+  Endpoint: <code>/asm</code>
+
+  <p>
+    This endpoint respond to <code>POST</code> request and try to compile and ASMify the code present in the
+    request's body.<br/>
+    <code>curl -X POST http://sunday.cleverapps.io/asm -d @Hello.java</code>
+  </p>
+  <button class="close-button" data-close aria-label="Close modal" type="button">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/foundation/6.1.2/foundation.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.0/angular.min.js"></script>
+<script src="https://rawgithub.com/ajaxorg/ace-builds/v1.1.1/src-min-noconflict/ace.js"></script>
+<script src="https://rawgithub.com/angular-ui/ui-ace/bower/ui-ace.min.js"></script>
+<script src="https://cdn.rawgit.com/picardy/angular-fontawesome/v1.0.0/dist/angular-fontawesome.min.js"></script>
+<script src="https://cdn.rawgit.com/zenorocha/clipboard.js/master/dist/clipboard.min.js"></script>
+<script src="https://cdn.rawgit.com/sachinchoolur/ngclipboard/1.1.0/dist/ngclipboard.min.js"></script>
+
+<script>
+  'use strict';
+  $(document).foundation();
+  var app = angular.module('sunday', ['ui.ace', 'picardy.fontawesome', 'ngclipboard']);
+  app.controller('SundayController', ['$scope', '$http', function ($scope, $http) {
+
+    $scope.finished = false;
+    $scope.running = false;
+
+    $scope.verbose = true;
+    $scope.lineNumbers = true;
+    $scope.private = true;
+    $scope.signatures = true;
+    $scope.sysinfo = false;
+    $scope.constants = false;
+
+    var copyMessage = "Copy";
+    $scope.bytecodeCopyButtonMessage = copyMessage;
+    $scope.asmCopyButtonMessage = copyMessage;
+    $scope.bytecodeCopied = false;
+    $scope.asmCopied = false;
+
+    var initEditor = function (editor) {
+      editor.clearSelection();
+      editor.moveCursorTo(0, 0);
+    };
+
+    $scope.javaEditorLoaded = function (javaEditor) {
+      $scope.javaEditor = javaEditor;
+      $scope.javaEditor.setValue($("#hello").text());
+      initEditor($scope.javaEditor);
+    };
+
+    $scope.bytecodeEditorLoaded = function (bytecodeEditor) {
+      $scope.bytecodeEditor = bytecodeEditor;
+    };
+
+    $scope.asmEditorLoaded = function (asmEditor) {
+      $scope.asmEditor = asmEditor;
+    };
+
+    $scope.onSuccess = function (event) {
+      event.clearSelection();
+      var copiedMessage = "Copied!";
+      if (event.trigger.id == "bytecodeCopyButton") {
+        $scope.bytecodeCopied = true;
+        $scope.bytecodeCopyButtonMessage = copiedMessage;
+      } else {
+        $scope.asmCopied = true;
+        $scope.asmCopyButtonMessage = copiedMessage;
+      }
+      $scope.$apply();
+    };
+
+    $scope.run = function () {
+      $scope.finished = false;
+      $scope.running = true;
+      var source = $scope.javaEditor.getValue();
+      var bytecodeQuery = "?" + ["verbose=" + $scope.verbose,
+            "lineNumbers=" + $scope.lineNumbers,
+            "private=" + $scope.private,
+            "signatures=" + $scope.signatures,
+            "sysinfo=" + $scope.sysinfo,
+            "constants=" + $scope.constants].join("&");
+      $http.post("/bytecode" + bytecodeQuery, source, {}).then(function (bytecode) {
+        $http.post("/asm", source, {}).then(function (asm) {
+          $scope.bytecode = bytecode.data;
+          $scope.bytecodeEditor.setValue($scope.bytecode);
+          initEditor($scope.bytecodeEditor);
+          $scope.asm = asm.data;
+          $scope.asmEditor.setValue($scope.asm);
+          initEditor($scope.asmEditor);
+          $scope.running = false;
+          $scope.finished = true;
+        });
+      });
+    };
+  }]);
+</script>
+</body>
+</html>

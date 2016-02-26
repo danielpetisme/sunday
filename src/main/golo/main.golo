@@ -5,7 +5,6 @@ import io.vertx.core.Vertx
 import io.vertx.core.http.HttpServer
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
-import io.vertx.ext.web.handler.BodyHandler
 
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.util.ASMifier
@@ -33,10 +32,11 @@ local function _javap = -> _java_home() + "/bin/javap"
 function main = |args| {
   let vertx = Vertx.vertx()
   let router = Router.router(vertx)
-  router: route(): handler(BodyHandler.create())
-
+  router: route(): handler(io.vertx.ext.web.handler.StaticHandler.create())
+  router: post(): handler(io.vertx.ext.web.handler.BodyHandler.create())
   router: post("/bytecode"): handler(^javaToByteCode)
   router: post("/asm"): handler(^javaToAsm)
+
   vertx
     : createHttpServer()
     : requestHandler(|httpRequest| -> router: accept(httpRequest))
@@ -59,7 +59,6 @@ local function getOrElseFalse = |params, key| {
 }
 
 local function javaToByteCode = |context| {
-  println("bytecode")
   let code = context: getBodyAsString()
   let params = context: request(): params()
   let verbose = getOrElseFalse(params, "verbose")
@@ -91,7 +90,6 @@ local function javaToByteCode = |context| {
 }
 
 local function javaToAsm = |context| {
-  println("asm")
   let code = context: getBodyAsString()
   let className = getFullQualifiedClassName(code)
   let tmp = Files.createTempDirectory(UUID.randomUUID(): toString()): toFile()
